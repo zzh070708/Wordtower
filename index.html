@@ -5,179 +5,661 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>词塔·暗域突围</title>
     <style>
+        :root {
+            --bg-dark: #0d0d1a;
+            --bg-panel: #151530;
+            --bg-card: #1a1a3e;
+            --bg-item: #1e1e40;
+            --border: #2a2a50;
+            --border-hover: #5a5a8a;
+            --gold: #e8b830;
+            --gold-dim: #a08030;
+            --red: #d94a4a;
+            --red-bright: #ff5555;
+            --green: #4ac29a;
+            --blue: #4a80c2;
+            --purple: #9b59b6;
+            --orange: #e87830;
+            --text: #d0d0d0;
+            --text-dim: #8888aa;
+            --text-bright: #ffffff;
+            --font: 'Microsoft YaHei', 'PingFang SC', 'Helvetica Neue', sans-serif;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            background: #0a0a1a;
-            display: flex; justify-content: center; align-items: center;
-            height: 100vh; font-family: 'Microsoft YaHei', sans-serif;
-            overflow: hidden; user-select: none;
+            background: #060610;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: var(--font);
+            overflow: hidden;
+            user-select: none;
         }
+
         #game-container {
-            width: 800px; height: 600px; position: relative;
-            background: #0a0a2e; border: 2px solid #2a2a4a;
-            border-radius: 8px; overflow: hidden;
+            width: 840px;
+            height: 640px;
+            position: relative;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 0 60px rgba(0,0,0,0.6);
         }
+
+        /* ========== 闪屏 ========== */
+        .splash-screen {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(ellipse at center, #1a1a3e 0%, #0d0d1a 70%);
+            transition: opacity 0.6s;
+        }
+        .splash-logo {
+            font-size: 90px;
+            animation: splashPulse 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 30px rgba(232,184,48,0.4));
+        }
+        @keyframes splashPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+        .splash-title {
+            font-size: 46px;
+            font-weight: bold;
+            color: var(--gold);
+            letter-spacing: 10px;
+            margin-top: 16px;
+            text-shadow: 0 0 30px rgba(232,184,48,0.3);
+        }
+        .splash-sub {
+            font-size: 15px;
+            color: var(--text-dim);
+            letter-spacing: 6px;
+            margin-top: 10px;
+        }
+
+        /* ========== 登录 ========== */
+        .auth-screen {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(ellipse at center, #1a1a3e 0%, #0d0d1a 70%);
+        }
+        .auth-box {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            width: 340px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+        .auth-title {
+            font-size: 28px;
+            color: var(--gold);
+            margin-bottom: 28px;
+            letter-spacing: 6px;
+            font-weight: bold;
+        }
+        .auth-box input {
+            width: 100%;
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-bright);
+            font-size: 15px;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .auth-box input:focus { border-color: var(--gold); }
+        .auth-msg { color: var(--red-bright); font-size: 13px; margin-top: 10px; min-height: 20px; }
+
+        /* ========== 营地 ========== */
         .camp-screen {
-            width: 100%; height: 100%; display: flex; flex-direction: column;
-            padding: 20px; position: relative;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            padding: 28px 32px;
+            position: relative;
+            background: var(--bg-dark);
         }
         .camp-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
         }
-        .camp-title { font-size: 28px; color: #ffcc00; font-weight: bold; letter-spacing: 3px; }
-        .camp-stats { display: flex; gap: 20px; color: #aaa; font-size: 14px; }
-        .camp-stats span { color: #ffcc00; }
-        .camp-body { display: flex; gap: 15px; flex: 1; }
+        .camp-title {
+            font-size: 26px;
+            color: var(--gold);
+            font-weight: bold;
+            letter-spacing: 4px;
+        }
+        .camp-stats {
+            display: flex;
+            gap: 24px;
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+        .camp-stats span { color: var(--gold); }
+
+        .camp-body { display: flex; gap: 28px; flex: 1; }
         .camp-left {
-            width: 220px; display: flex; flex-direction: column;
-            align-items: center; gap: 10px;
+            width: 230px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
         }
         .character-area {
-            background: #1a1a3e; border-radius: 12px; padding: 15px;
-            width: 100%; text-align: center; cursor: pointer;
-            border: 2px solid #3a3a6a; transition: border-color 0.3s;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            width: 100%;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
-        .character-area:hover { border-color: #ffcc00; }
-        .character-icon { font-size: 60px; }
-        .character-name { color: #fff; font-size: 18px; margin-top: 5px; }
-        .character-weapon { color: #aaa; font-size: 13px; margin-top: 3px; }
-        .character-stats-text { color: #888; font-size: 12px; margin-top: 5px; }
-        .camp-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-        .camp-btn {
-            padding: 10px; font-size: 15px; background: #2a2a5e;
-            color: #ccc; border: 2px solid #3a3a6a; border-radius: 8px;
-            cursor: pointer; text-align: center; transition: all 0.2s;
+        .character-area:hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 20px rgba(232,184,48,0.1);
         }
-        .camp-btn:hover { background: #3a3a5e; border-color: #5a5a9a; color: #fff; }
-        .camp-btn.enter-btn {
-            background: linear-gradient(135deg, #cc3300, #ff4400);
-            border: none; color: #fff; font-size: 18px; padding: 14px;
-            margin-top: 5px; font-weight: bold; letter-spacing: 3px;
+        .character-icon { font-size: 64px; }
+        .character-name { color: var(--text-bright); font-size: 17px; margin-top: 6px; }
+        .equip-slots { margin-top: 12px; font-size: 13px; color: var(--text-dim); }
+        .equip-slot-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
         }
-        .camp-btn.enter-btn:hover { transform: scale(1.03); box-shadow: 0 0 20px rgba(255,68,0,0.6); }
-        .camp-right { flex: 1; position: relative; }
+        .equip-slot-row .slot-label { color: var(--text-dim); }
+        .equip-slot-row .slot-value { color: var(--gold); }
 
+        .camp-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+        .camp-btn {
+            padding: 13px;
+            font-size: 15px;
+            background: var(--bg-card);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            letter-spacing: 2px;
+        }
+        .camp-btn:hover {
+            background: #222250;
+            border-color: var(--border-hover);
+            color: var(--text-bright);
+        }
+        .camp-btn.enter-btn {
+            background: linear-gradient(135deg, #c0392b, #e74c3c);
+            border: none;
+            color: #fff;
+            font-size: 17px;
+            padding: 16px;
+            margin-top: 8px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            box-shadow: 0 4px 16px rgba(231,76,60,0.3);
+        }
+        .camp-btn.enter-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(231,76,60,0.5);
+        }
+        .camp-right {
+            flex: 1;
+            position: relative;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ========== 弹窗 ========== */
         .popup-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); display: flex;
-            justify-content: center; align-items: center; z-index: 1000;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
         }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .popup-box {
-            background: #1a1a3e; border-radius: 12px; padding: 25px;
-            text-align: center; max-width: 420px; width: 90%;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8); max-height: 80vh; overflow-y: auto;
-            position: relative;
+            background: var(--bg-panel);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            width: 440px;
+            max-width: 92%;
+            max-height: 520px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 24px 14px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .popup-header-title {
+            font-size: 19px;
+            color: var(--gold);
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .popup-header-close {
+            font-size: 20px;
+            color: var(--text-dim);
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .popup-header-close:hover { color: #fff; background: rgba(255,255,255,0.1); }
+        .popup-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 24px;
+            min-height: 0;
+        }
+        .popup-body::-webkit-scrollbar { width: 5px; }
+        .popup-body::-webkit-scrollbar-track { background: transparent; }
+        .popup-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .popup-footer {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 14px 24px 18px;
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
         }
         .popup-btn {
-            padding: 8px 25px; font-size: 15px; background: #cc3300;
-            color: #fff; border: none; border-radius: 6px; cursor: pointer;
-            margin: 5px;
+            padding: 9px 28px;
+            font-size: 15px;
+            background: #c0392b;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 1px;
         }
-        .popup-btn:hover { background: #ee4400; }
-        .popup-btn.blue-btn { background: #3366cc; }
-        .popup-btn.blue-btn:hover { background: #4477dd; }
-        .popup-btn.green-btn { background: #228833; }
-        .popup-btn.green-btn:hover { background: #33aa44; }
-        .popup-close {
-            position: absolute; top: 8px; right: 15px; font-size: 22px;
-            color: #888; cursor: pointer;
-        }
-        .popup-close:hover { color: #fff; }
+        .popup-btn:hover { background: #e74c3c; }
+        .popup-btn.blue-btn { background: #2c5282; }
+        .popup-btn.blue-btn:hover { background: #3a6dab; }
+        .popup-btn.green-btn { background: #276749; }
+        .popup-btn.green-btn:hover { background: #2f855a; }
 
+        /* 列表项 */
         .item-row {
-            display: flex; justify-content: space-between; align-items: center;
-            background: #2a2a4a; margin: 5px 0; padding: 10px;
-            border-radius: 6px; color: #ddd; font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-item);
+            margin: 6px 0;
+            padding: 12px 14px;
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 13px;
+            border: 1px solid transparent;
+            transition: border-color 0.2s;
         }
-        .item-row.equipped { border: 2px solid #ffcc00; }
+        .item-row:hover { border-color: var(--border-hover); }
+        .item-row.equipped { border-color: var(--gold); background: #1a1a2e; }
         .item-row .q-white { color: #ccc; }
-        .item-row .q-green { color: #00ff88; }
-        .item-row .q-blue { color: #4488ff; }
-        .item-row .q-purple { color: #cc44ff; }
-        .item-row .q-orange { color: #ff8800; }
-        .item-row button { padding: 4px 10px; font-size: 12px; background: #cc3300; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+        .item-row .q-green { color: var(--green); }
+        .item-row .q-blue { color: var(--blue); }
+        .item-row .q-purple { color: var(--purple); }
+        .item-row .q-orange { color: var(--orange); }
+        .item-row button {
+            padding: 5px 14px;
+            font-size: 12px;
+            background: #c0392b;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0 3px;
+            transition: background 0.2s;
+        }
+        .item-row button:hover { background: #e74c3c; }
 
+        /* ========== 战斗 ========== */
         .battle-screen {
-            width: 100%; height: 100%; display: none;
-            flex-direction: column; padding: 20px;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            padding: 24px 32px;
+            background: radial-gradient(ellipse at 50% 30%, #111130 0%, #0a0a18 100%);
         }
-        .battle-hud { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .battle-hud span { color: #fff; font-size: 16px; }
-        .hp-bar-outer { width: 200px; height: 16px; background: #333; border-radius: 8px; overflow: hidden; }
-        .hp-bar-inner { height: 100%; transition: width 0.3s; }
-        .timer-bar-outer { width: 400px; height: 10px; background: #333; border-radius: 5px; margin: 10px auto; overflow: hidden; }
-        .timer-bar-inner { height: 100%; background: #00ff00; transition: width 0.1s linear; }
-        .monster-area { text-align: center; margin: 10px 0; }
-        .monster-name { font-size: 22px; color: #ff6666; }
-        .monster-icon { font-size: 80px; margin: 5px 0; transition: transform 0.1s; }
-        .question-area { text-align: center; margin: 10px 0; }
-        .question-word { font-size: 40px; color: #fff; font-weight: bold; letter-spacing: 4px; }
-        .options-area { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 40px; margin-top: 5px; }
-        .option-btn { padding: 12px; font-size: 18px; background: #1a1a3e; color: #ccc; border: 2px solid #3a3a6a; border-radius: 8px; cursor: pointer; text-align: center; }
-        .option-btn:hover { background: #2a2a5e; }
-        .option-btn.correct { background: #004400; border-color: #00ff00; color: #00ff00; }
-        .option-btn.wrong { background: #440000; border-color: #ff0000; color: #ff0000; }
-        .feedback-text { text-align: center; font-size: 16px; margin-top: 8px; height: 24px; }
-        .combo-text { text-align: center; font-size: 16px; color: #ffaa00; height: 24px; }
+        .battle-hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .battle-hud .hud-left { display: flex; gap: 24px; align-items: center; }
+        .battle-hud .hud-right { display: flex; gap: 24px; align-items: center; }
+        .battle-hud .hud-label { color: var(--text-dim); font-size: 14px; }
+        .battle-hud .hud-value { color: var(--text-bright); font-size: 16px; font-weight: bold; }
+        .hp-bar-outer {
+            width: 180px; height: 12px;
+            background: #1a1a30; border-radius: 6px;
+            overflow: hidden; border: 1px solid #2a2a40;
+        }
+        .hp-bar-inner { height: 100%; background: var(--red); transition: width 0.3s; border-radius: 6px; }
+
+        .timer-bar-outer {
+            width: 360px; height: 6px;
+            background: #1a1a30; border-radius: 3px;
+            margin: 0 auto; overflow: hidden;
+        }
+        .timer-bar-inner {
+            height: 100%;
+            background: var(--green);
+            transition: width 0.1s linear;
+            border-radius: 3px;
+        }
+
+        .monster-area {
+            text-align: center;
+            margin: 16px 0 8px;
+        }
+        .monster-name {
+            font-size: 20px;
+            color: var(--red-bright);
+            margin-bottom: 4px;
+        }
+        .monster-icon {
+            font-size: 72px;
+            margin: 4px 0;
+            transition: transform 0.08s;
+            filter: drop-shadow(0 0 16px rgba(217,74,74,0.3));
+        }
+        .monster-hp-outer {
+            width: 140px; height: 6px;
+            background: #1a1a30; border-radius: 3px;
+            margin: 8px auto; overflow: hidden;
+        }
+        .monster-hp-inner { height: 100%; background: var(--red); transition: width 0.3s; border-radius: 3px; }
+
+        .question-area { text-align: center; margin: 12px 0; }
+        .question-word {
+            font-size: 42px;
+            color: var(--text-bright);
+            font-weight: bold;
+            letter-spacing: 6px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.1);
+        }
+
+        .options-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 0 60px;
+            margin-top: 8px;
+        }
+        .option-btn {
+            padding: 16px;
+            font-size: 17px;
+            background: var(--bg-card);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            letter-spacing: 1px;
+        }
+        .option-btn:hover {
+            background: #252550;
+            border-color: var(--border-hover);
+            color: var(--text-bright);
+        }
+        .option-btn.correct { background: #1a3a2a; border-color: var(--green); color: var(--green); }
+        .option-btn.wrong { background: #3a1a1a; border-color: var(--red); color: var(--red-bright); }
+
+        .feedback-text {
+            text-align: center;
+            font-size: 16px;
+            margin-top: 10px;
+            height: 24px;
+        }
+        .combo-text {
+            text-align: center;
+            font-size: 15px;
+            color: var(--gold);
+            height: 22px;
+        }
+
+        .extract-area {
+            position: absolute;
+            top: 20px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 10;
+        }
         .extract-btn {
-            position: absolute; top: 20px; right: 20px;
-            background: #ffcc00; color: #000; padding: 8px 16px;
-            border-radius: 6px; cursor: pointer; font-weight: bold;
-            font-size: 16px; z-index: 10; display: none;
+            background: var(--gold);
+            color: #1a1a1a;
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            border: none;
+            transition: all 0.2s;
         }
-        .extract-btn:hover { background: #ffee44; }
+        .extract-btn:hover { background: #f0c840; }
+        .organize-btn {
+            background: var(--blue);
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            border: none;
+            transition: all 0.2s;
+        }
+        .organize-btn:hover { background: #5a90d2; }
+
+        .battle-bottom-bar {
+            position: absolute;
+            bottom: 16px;
+            left: 32px;
+            right: 32px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: rgba(10,10,24,0.9);
+            padding: 10px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .battle-equip-bar {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: var(--text-dim);
+            flex: 1;
+        }
+        .battle-equip-bar .eq-slot {
+            flex: 1;
+            text-align: center;
+            border-right: 1px solid var(--border);
+            padding: 0 8px;
+        }
+        .battle-equip-bar .eq-slot:last-child { border-right: none; }
+        .battle-equip-bar .eq-name { color: var(--gold); }
+        .battle-backpack-btn {
+            background: #c0392b;
+            color: #fff;
+            padding: 7px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            border: none;
+            transition: background 0.2s;
+        }
+        .battle-backpack-btn:hover { background: #e74c3c; }
+
+        /* 游戏结束覆盖 */
+        .game-over-cover {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 500;
+        }
+        .game-over-cover .go-title {
+            font-size: 32px;
+            color: var(--red-bright);
+            margin-bottom: 16px;
+            letter-spacing: 3px;
+        }
+        .game-over-cover .go-detail {
+            color: var(--text-dim);
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-align: center;
+            line-height: 1.8;
+        }
+        .game-over-cover .go-btn {
+            padding: 10px 32px;
+            font-size: 16px;
+            background: #c0392b;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .game-over-cover .go-btn:hover { background: #e74c3c; }
     </style>
 </head>
 <body>
     <div id="game-container">
+        <!-- 闪屏 -->
+        <div class="splash-screen" id="splashScreen">
+            <div class="splash-logo">⚔️</div>
+            <div class="splash-title">词塔·暗域突围</div>
+            <div class="splash-sub">WordTower : Shadow Break</div>
+        </div>
+
+        <!-- 登录 -->
+        <div class="auth-screen" id="authScreen">
+            <div class="auth-box">
+                <div class="auth-title">踏 入 暗 域</div>
+                <input type="text" id="nicknameInput" placeholder="玩家昵称" maxlength="10">
+                <input type="password" id="passwordInput" placeholder="密码（6-16位）" maxlength="16">
+                <div style="display:flex;gap:12px;justify-content:center;margin-top:16px;">
+                    <button class="popup-btn green-btn" id="loginBtn">登 录</button>
+                    <button class="popup-btn" id="registerBtn">注 册</button>
+                </div>
+                <div class="auth-msg" id="authMsg"></div>
+            </div>
+        </div>
+
+        <!-- 营地 -->
         <div class="camp-screen" id="campScreen">
             <div class="camp-header">
                 <div class="camp-title">词塔·暗域突围</div>
                 <div class="camp-stats">
-                    金币: <span id="campGold">0</span> |
-                    最高层: <span id="campMaxFloor">0</span> |
-                    武器: <span id="campWeaponCount">0</span>
+                    金币 <span id="campGold">0</span>
+                    <span style="color:#444;">|</span>
+                    最高 <span id="campMaxFloor">0</span> 层
+                    <span style="color:#444;">|</span>
+                    <span style="cursor:pointer;color:var(--red-bright);" id="logoutLink">退出</span>
                 </div>
             </div>
             <div class="camp-body">
                 <div class="camp-left">
                     <div class="character-area" id="characterArea">
                         <div class="character-icon">⚔️</div>
-                        <div class="character-name">语者</div>
-                        <div class="character-weapon" id="charWeapon">未装备武器</div>
-                        <div class="character-stats-text" id="charStats">攻击:0 | 防御:0</div>
+                        <div class="character-name" id="charName">语者</div>
+                        <div class="equip-slots" id="campEquipSlots">
+                            <div class="equip-slot-row"><span class="slot-label">⚔️ 武器</span><span class="slot-value">无</span></div>
+                            <div class="equip-slot-row"><span class="slot-label">🛡️ 护甲</span><span class="slot-value">无</span></div>
+                            <div class="equip-slot-row"><span class="slot-label">💍 饰品</span><span class="slot-value">无</span></div>
+                        </div>
                     </div>
                     <div class="camp-actions">
-                        <div class="camp-btn" id="warehouseBtn">📦 仓库</div>
+                        <div class="camp-btn" id="warehouseBtn">📦 总仓库</div>
                         <div class="camp-btn" id="forgeBtn">🔨 锻造台</div>
                         <div class="camp-btn" id="shopBtn">🏪 商城</div>
-                        <div class="camp-btn enter-btn" id="enterTowerBtn">⚔️ 进入词塔</div>
+                        <div class="camp-btn enter-btn" id="enterTowerBtn">⚔️ 进 入 词 塔</div>
                     </div>
                 </div>
                 <div class="camp-right">
-                    <div style="color:#666; text-align:center; padding-top:80px;">准备就绪，随时可以进入词塔冒险。</div>
-                </div>
-            </div>
-        </div>
-        <div class="battle-screen" id="battleScreen">
-            <div class="battle-hud">
-                <span id="floorText">层数: 1</span>
-                <span>HP</span>
-                <div class="hp-bar-outer"><div class="hp-bar-inner" id="hpBar" style="width:100%;background:#ff4444;"></div></div>
-                <span id="hpText">100/100</span>
-                <span>金币: <span id="goldText">0</span></span>
-            </div>
-            <div class="timer-bar-outer"><div class="timer-bar-inner" id="timerBar" style="width:100%"></div></div>
-            <div class="monster-area">
-                <div class="monster-name" id="monsterName">怪物</div>
-                <div class="monster-icon" id="monsterIcon">👹</div>
-                <div style="display:flex;justify-content:center;margin-top:8px;">
-                    <div class="hp-bar-outer" style="width:150px;height:12px;">
-                        <div class="hp-bar-inner" id="monsterHpBar" style="width:100%;background:#ff4444;"></div>
+                    <div style="color:var(--text-dim);text-align:center;font-size:15px;letter-spacing:2px;">
+                        ⚔️ 准备就绪<br><span style="font-size:13px;color:#555;">随时可以进入词塔冒险</span>
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- 战斗 -->
+        <div class="battle-screen" id="battleScreen">
+            <div class="battle-hud">
+                <div class="hud-left">
+                    <span class="hud-label">层数</span>
+                    <span class="hud-value" id="floorText">1</span>
+                </div>
+                <div class="hud-right">
+                    <span class="hud-label">HP</span>
+                    <div class="hp-bar-outer"><div class="hp-bar-inner" id="hpBar" style="width:100%;"></div></div>
+                    <span class="hud-value" id="hpText">100/100</span>
+                    <span style="color:#444;">|</span>
+                    <span class="hud-label">金币</span>
+                    <span class="hud-value" id="goldText" style="color:var(--gold);">0</span>
+                </div>
+            </div>
+            <div class="timer-bar-outer"><div class="timer-bar-inner" id="timerBar" style="width:100%"></div></div>
+
+            <div class="monster-area">
+                <div class="monster-name" id="monsterName">怪物</div>
+                <div class="monster-icon" id="monsterIcon">👹</div>
+                <div class="monster-hp-outer"><div class="monster-hp-inner" id="monsterHpBar" style="width:100%;"></div></div>
+            </div>
+
             <div class="question-area"><div class="question-word" id="questionWord">word</div></div>
             <div class="combo-text" id="comboText"></div>
             <div class="options-area" id="optionsArea">
@@ -187,10 +669,25 @@
                 <div class="option-btn">D</div>
             </div>
             <div class="feedback-text" id="feedbackText"></div>
-            <div class="extract-btn" id="extractBtn" onclick="extractNow()">🚪 撤离</div>
+
+            <div class="extract-area" id="extractArea" style="display:none;">
+                <button class="extract-btn" id="extractBtn">🚪 撤离</button>
+                <button class="organize-btn" id="organizeBtn">🎒 整理装备</button>
+            </div>
+
+            <div class="battle-bottom-bar">
+                <div class="battle-equip-bar" id="battleEquipBar">
+                    <div class="eq-slot">⚔️ <span class="eq-name">无</span></div>
+                    <div class="eq-slot">🛡️ <span class="eq-name">无</span></div>
+                    <div class="eq-slot">💍 <span class="eq-name">无</span></div>
+                </div>
+                <button class="battle-backpack-btn" id="battleBackpackBtn">🎒 背包</button>
+            </div>
         </div>
     </div>
+
     <script>
+    (function() {
         const wordsData = [
             { word: "abandon", meaning: "抛弃，放弃", distractors: ["接受", "丰富", "争论"], monster: "弃疗巨魔", memory_tip: "a+band+on → 被抛弃", weapon: "Abandon之弃剑", weapon_quote: "抛弃杂念，才能斩断过去！" },
             { word: "ability", meaning: "能力", distractors: ["残疾", "稳定", "缺席"], monster: "无能狂怒兽", memory_tip: "able变ability", weapon: "Ability权杖", weapon_quote: "真正的能力，让敌人佩服。" },
@@ -213,40 +710,59 @@
             floor: 1, hp: 100, maxHp: 100, monstersRemaining: 3,
             currentMonster: null, combo: 0, timeLeft: 8, timerInterval: null,
             canAnswer: true, gold: 0, maxFloor: 0, wrongWords: [],
-            weapons: [], equippedWeapon: null, battleWeapons: [],
-            noDropStreak: 0, dailyFlipsUsed: 0
+            weapons: [], equipped: { weapon: null, armor: null, trinket: null },
+            battleWeapons: [], noDropStreak: 0, dailyFlipsUsed: 0,
+            consumables: { potion: 0, bandage: 0, repairOil: 0 },
+            nickname: '语者', pendingPurchases: []
         };
+        const MAX_BATTLE_BAG = 15;
+        const STORAGE_KEY = 'wordtower_save';
+        const BASE_ATTACK = 1;
+        const BASE_DEFENSE = 0;
 
-        function loadGame() {
-            const saved = localStorage.getItem('wordtower_save');
-            if (saved) {
-                const data = JSON.parse(saved);
-                gs.gold = data.gold || 0;
-                gs.maxFloor = data.maxFloor || 0;
-                gs.weapons = data.weapons || [];
-                gs.equippedWeapon = data.equippedWeapon || null;
-                gs.dailyFlipsUsed = data.dailyFlipsUsed || 0;
-            }
-        }
         function saveGame() {
-            localStorage.setItem('wordtower_save', JSON.stringify({
+            const data = {
                 gold: gs.gold, maxFloor: gs.maxFloor,
-                weapons: gs.weapons, equippedWeapon: gs.equippedWeapon,
-                dailyFlipsUsed: gs.dailyFlipsUsed
-            }));
+                weapons: gs.weapons, equipped: gs.equipped,
+                dailyFlipsUsed: gs.dailyFlipsUsed, consumables: gs.consumables,
+                nickname: gs.nickname, pendingPurchases: gs.pendingPurchases
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
-        loadGame();
+        function loadGame() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const d = JSON.parse(saved);
+                gs.gold = d.gold || 0; gs.maxFloor = d.maxFloor || 0;
+                gs.weapons = d.weapons || [];
+                gs.equipped = d.equipped || { weapon: null, armor: null, trinket: null };
+                gs.dailyFlipsUsed = d.dailyFlipsUsed || 0;
+                gs.consumables = d.consumables || { potion: 0, bandage: 0, repairOil: 0 };
+                gs.nickname = d.nickname || '语者';
+                gs.pendingPurchases = d.pendingPurchases || [];
+                return true;
+            }
+            return false;
+        }
 
         const D = {};
         function cacheDom() {
-            D.campScreen = document.getElementById('campScreen');
-            D.battleScreen = document.getElementById('battleScreen');
+            D.splash = document.getElementById('splashScreen');
+            D.auth = document.getElementById('authScreen');
+            D.camp = document.getElementById('campScreen');
+            D.battle = document.getElementById('battleScreen');
+            D.nicknameInput = document.getElementById('nicknameInput');
+            D.passwordInput = document.getElementById('passwordInput');
+            D.authMsg = document.getElementById('authMsg');
             D.campGold = document.getElementById('campGold');
             D.campMaxFloor = document.getElementById('campMaxFloor');
-            D.campWeaponCount = document.getElementById('campWeaponCount');
-            D.charWeapon = document.getElementById('charWeapon');
-            D.charStats = document.getElementById('charStats');
+            D.campEquipSlots = document.getElementById('campEquipSlots');
+            D.charName = document.getElementById('charName');
+            D.extractArea = document.getElementById('extractArea');
             D.extractBtn = document.getElementById('extractBtn');
+            D.organizeBtn = document.getElementById('organizeBtn');
+            D.battleEquipBar = document.getElementById('battleEquipBar');
+            D.battleBackpackBtn = document.getElementById('battleBackpackBtn');
             D.floorText = document.getElementById('floorText');
             D.hpText = document.getElementById('hpText');
             D.hpBar = document.getElementById('hpBar');
@@ -263,430 +779,412 @@
         }
         cacheDom();
 
-        document.getElementById('enterTowerBtn').addEventListener('click', enterTower);
-        document.getElementById('warehouseBtn').addEventListener('click', openWarehouse);
-        document.getElementById('forgeBtn').addEventListener('click', openForge);
-        document.getElementById('shopBtn').addEventListener('click', openShop);
-        document.getElementById('characterArea').addEventListener('click', openCharacter);
-        D.optionBtns.forEach((b, i) => b.addEventListener('click', () => selectAnswer(i)));
+        function getAttackBonus() { return BASE_ATTACK + ((gs.equipped.weapon && gs.equipped.weapon.type === 'attack') ? gs.equipped.weapon.power : 0); }
+        function getDefenseBonus() { return BASE_DEFENSE + ((gs.equipped.armor && gs.equipped.armor.type === 'defense') ? gs.equipped.armor.power : 0); }
+        function getTrinketEffect() { const t = gs.equipped.trinket; if (!t) return { type: null, power: 0 }; return { type: t.subtype, power: t.power }; }
+        function getEquipSlot(type) { if (type === 'attack') return 'weapon'; if (type === 'defense') return 'armor'; return 'trinket'; }
+
+        function showPopup(title, contentHTML, buttons) {
+            const old = document.querySelector('.popup-overlay'); if (old) old.remove();
+            const overlay = document.createElement('div'); overlay.className = 'popup-overlay';
+            const box = document.createElement('div'); box.className = 'popup-box';
+            const header = document.createElement('div'); header.className = 'popup-header';
+            const titleEl = document.createElement('div'); titleEl.className = 'popup-header-title'; titleEl.textContent = title;
+            const closeBtn = document.createElement('button'); closeBtn.className = 'popup-header-close'; closeBtn.textContent = '✕';
+            closeBtn.addEventListener('click', () => overlay.remove());
+            header.appendChild(titleEl); header.appendChild(closeBtn);
+            const body = document.createElement('div'); body.className = 'popup-body';
+            if (typeof contentHTML === 'string') { body.innerHTML = contentHTML; } else { body.appendChild(contentHTML); }
+            const footer = document.createElement('div'); footer.className = 'popup-footer';
+            buttons.forEach(b => {
+                const btn = document.createElement('button');
+                btn.className = 'popup-btn ' + (b.cls || ''); btn.textContent = b.text;
+                btn.addEventListener('click', () => { overlay.remove(); if (b.callback) b.callback(); });
+                footer.appendChild(btn);
+            });
+            box.appendChild(header); box.appendChild(body); box.appendChild(footer);
+            overlay.appendChild(box); D.gc.appendChild(overlay);
+            return { overlay, body, footer };
+        }
+
+        function pauseBattle() { clearInterval(gs.timerInterval); gs.canAnswer = false; }
+        function resumeBattle() { gs.canAnswer = true; gs.timerInterval = setInterval(updateTimer, 1000); }
+
+        function login() {
+            const nick = D.nicknameInput.value.trim(), pw = D.passwordInput.value.trim();
+            if (!nick || !pw) { D.authMsg.textContent = '请输入昵称和密码'; return; }
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) { D.authMsg.textContent = '账号不存在，请先注册'; return; }
+            const data = JSON.parse(saved);
+            if (data.nickname === nick) {
+                gs.nickname = data.nickname || nick; gs.gold = data.gold || 0; gs.maxFloor = data.maxFloor || 0;
+                gs.weapons = data.weapons || []; gs.equipped = data.equipped || { weapon: null, armor: null, trinket: null };
+                gs.dailyFlipsUsed = data.dailyFlipsUsed || 0; gs.consumables = data.consumables || { potion: 0, bandage: 0, repairOil: 0 };
+                gs.pendingPurchases = data.pendingPurchases || [];
+                enterCamp();
+            } else { D.authMsg.textContent = '账号不存在，请先注册'; }
+        }
+        function register() {
+            const nick = D.nicknameInput.value.trim(), pw = D.passwordInput.value.trim();
+            if (!nick || !pw) { D.authMsg.textContent = '请输入昵称和密码'; return; }
+            if (pw.length < 6) { D.authMsg.textContent = '密码至少6位'; return; }
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved && JSON.parse(saved).nickname === nick) { D.authMsg.textContent = '昵称已存在，请直接登录'; return; }
+            gs.nickname = nick; gs.gold = 0; gs.maxFloor = 0; gs.weapons = []; gs.equipped = { weapon: null, armor: null, trinket: null };
+            gs.dailyFlipsUsed = 0; gs.consumables = { potion: 0, bandage: 0, repairOil: 0 };
+            gs.pendingPurchases = [];
+            saveGame(); enterCamp();
+        }
+        function enterCamp() { D.auth.style.display = 'none'; D.camp.style.display = 'flex'; updateCampUI(); }
+        function logout() { D.camp.style.display = 'none'; D.battle.style.display = 'none'; D.auth.style.display = 'flex'; D.authMsg.textContent = ''; D.nicknameInput.value = ''; D.passwordInput.value = ''; }
 
         function updateCampUI() {
-            D.campGold.textContent = gs.gold;
-            D.campMaxFloor.textContent = gs.maxFloor;
-            D.campWeaponCount.textContent = gs.weapons.length;
-            if (gs.equippedWeapon) {
-                const w = gs.equippedWeapon;
-                D.charWeapon.textContent = w.name + ' (' + (w.type==='attack'?'攻击':'防御') + '+' + w.power + ')';
-                D.charStats.textContent = '攻击:' + getAttackBonus() + ' | 防御:' + getDefenseBonus();
-            } else {
-                D.charWeapon.textContent = '未装备武器';
-                D.charStats.textContent = '攻击:0 | 防御:0';
-            }
+            D.campGold.textContent = gs.gold; D.campMaxFloor.textContent = gs.maxFloor; D.charName.textContent = gs.nickname;
+            const slots = D.campEquipSlots.querySelectorAll('.equip-slot-row');
+            const eq = gs.equipped;
+            slots[0].querySelector('.slot-value').textContent = eq.weapon ? eq.weapon.name + ' (+' + eq.weapon.power + ')' : '无';
+            slots[1].querySelector('.slot-value').textContent = eq.armor ? eq.armor.name + ' (+' + eq.armor.power + ')' : '无';
+            slots[2].querySelector('.slot-value').textContent = eq.trinket ? eq.trinket.name + ' [' + eq.trinket.subtype + ']' : '无';
             saveGame();
         }
-
-        function getAttackBonus() { return (gs.equippedWeapon && gs.equippedWeapon.type==='attack') ? gs.equippedWeapon.power : 0; }
-        function getDefenseBonus() { return (gs.equippedWeapon && gs.equippedWeapon.type==='defense') ? gs.equippedWeapon.power : 0; }
-
-        function showPopup(title, content, buttons) {
-            const old = document.querySelector('.popup-overlay');
-            if (old) old.remove();
-            const overlay = document.createElement('div'); overlay.className = 'popup-overlay';
-            const box = document.createElement('div'); box.className = 'popup-box'; box.style.position = 'relative';
-            let btnsHTML = '';
-            buttons.forEach(b => btnsHTML += `<button class="popup-btn ${b.cls||''}">${b.text}</button>`);
-            box.innerHTML = `<span class="popup-close">✕</span><div style="font-size:20px;color:#ffcc00;margin-bottom:10px;">${title}</div><div style="color:#ddd;line-height:1.6;margin-bottom:10px;">${content}</div><div>${btnsHTML}</div>`;
-            overlay.appendChild(box);
-            D.gc.appendChild(overlay);
-            box.querySelector('.popup-close').addEventListener('click', () => overlay.remove());
-            const btnEls = box.querySelectorAll('.popup-btn');
-            btnEls.forEach((el, i) => {
-                if (buttons[i]) el.addEventListener('click', () => { overlay.remove(); if (buttons[i].callback) buttons[i].callback(); });
-            });
-        }
-
-        function equipWeaponLocal(weaponObj) {
-            // 如果已有装备，先把旧的卸下放回battleWeapons
-            if (gs.equippedWeapon) {
-                gs.battleWeapons.push(gs.equippedWeapon);
-            }
-            // 从battleWeapons中移除新武器，装备它
-            const idx = gs.battleWeapons.indexOf(weaponObj);
-            if (idx >= 0) gs.battleWeapons.splice(idx, 1);
-            gs.equippedWeapon = weaponObj;
-            updateBattleHUD();
+        function updateBattleEquipBar() {
+            const slots = D.battleEquipBar.querySelectorAll('.eq-slot');
+            const eq = gs.equipped;
+            slots[0].querySelector('.eq-name').textContent = eq.weapon ? eq.weapon.name + ' (+' + eq.weapon.power + ')' : '无';
+            slots[1].querySelector('.eq-name').textContent = eq.armor ? eq.armor.name + ' (+' + eq.armor.power + ')' : '无';
+            slots[2].querySelector('.eq-name').textContent = eq.trinket ? eq.trinket.name : '无';
         }
 
         function openWarehouse() {
-            let html = gs.weapons.length === 0 ? '<div style="color:#888;">仓库空空如也</div>' : '';
-            const sorted = [...gs.weapons].sort((a,b) => ({orange:5,purple:4,blue:3,green:2,white:1})[b.quality] - ({orange:5,purple:4,blue:3,green:2,white:1})[a.quality]);
-            sorted.forEach(w => {
-                const idx = gs.weapons.indexOf(w), isEq = gs.equippedWeapon === w;
-                html += `<div class="item-row ${isEq?'equipped':''}"><div><span class="q-${w.quality}">${w.name}</span> <span style="font-size:11px;color:#888;">${w.type==='attack'?'⚔️':'🛡️'}+${w.power} | 耐久:${w.durability}%</span>${isEq?' <span style="color:#ffcc00;">[装备中]</span>':''}</div><button>${isEq?'卸下':'装备'}</button></div>`;
-            });
-            showPopup('📦 武器仓库', html, [{text:'关闭', cls:'blue-btn', callback:()=>{updateCampUI();}}]);
+            let html = '<div style="color:var(--gold);margin-bottom:12px;font-weight:bold;">⚔️ 装备仓库</div>';
+            const allGear = [...gs.weapons]; let sorted = [];
+            if (allGear.length === 0) html += '<div style="color:var(--text-dim);padding:20px;text-align:center;">空空如也</div>';
+            else {
+                sorted = [...allGear].sort((a,b) => ({orange:5,purple:4,blue:3,green:2,white:1})[b.quality] - ({orange:5,purple:4,blue:3,green:2,white:1})[a.quality]);
+                sorted.forEach(w => {
+                    const slot = getEquipSlot(w.type === 'trinket' ? 'trinket' : w.type);
+                    const isEq = gs.equipped[slot] === w;
+                    const typeLabel = w.type === 'attack' ? '⚔️攻' : w.type === 'defense' ? '🛡️防' : '💍'+w.subtype;
+                    html += `<div class="item-row ${isEq?'equipped':''}"><div><span class="q-${w.quality}">${w.name}</span> <span style="font-size:11px;color:var(--text-dim);">${typeLabel}+${w.power} | 耐久 ${w.durability}%</span>${isEq?' <span style="color:var(--gold);">[装备中]</span>':''}</div><button class="equip-ware-btn">${isEq?'卸下':'装备'}</button></div>`;
+                });
+            }
+            html += '<div style="color:var(--gold);margin:16px 0 10px;font-weight:bold;">🧪 消耗品</div>';
+            html += `<div class="item-row"><span>❤️ 生命药水</span><span>${gs.consumables.potion} 瓶</span></div>`;
+            html += `<div class="item-row"><span>🩹 绷带</span><span>${gs.consumables.bandage} 个</span></div>`;
+            html += `<div class="item-row"><span>🔧 修复油</span><span>${gs.consumables.repairOil} 瓶</span></div>`;
+            const popup = showPopup('📦 总仓库', html, [{text:'关 闭', cls:'blue-btn', callback:()=>updateCampUI()}]);
             setTimeout(() => {
-                const rows = document.querySelectorAll('.item-row');
-                rows.forEach((row, i) => {
-                    const w = sorted[i];
-                    if (!w) return;
-                    row.querySelector('button').addEventListener('click', () => {
-                        equipWeapon(gs.weapons.indexOf(w));
-                        openWarehouse();
+                popup.body.querySelectorAll('.equip-ware-btn').forEach((b, i) => {
+                    b.addEventListener('click', () => {
+                        const w = sorted[i]; if (!w) return;
+                        const slot = getEquipSlot(w.type === 'trinket' ? 'trinket' : w.type);
+                        if (gs.equipped[slot] === w) gs.equipped[slot] = null; else gs.equipped[slot] = w;
+                        updateCampUI(); openWarehouse();
                     });
                 });
             }, 100);
         }
 
-        function equipWeapon(idx) {
-            const w = gs.weapons[idx];
-            if (!w) return;
-            if (gs.equippedWeapon === w) { gs.equippedWeapon = null; }
-            else { gs.equippedWeapon = w; }
-            updateCampUI();
-        }
-
-        function openCharacter() {
-            let html = '<div style="font-size:60px;">⚔️</div><div style="color:#fff;font-size:20px;">语者</div>';
-            if (gs.equippedWeapon) {
-                const w = gs.equippedWeapon;
-                html += `<div style="color:#ffcc00;margin-top:8px;">${w.name}</div><div style="color:#aaa;">品质:${w.quality} | ${w.type==='attack'?'攻击':'防御'}+${w.power}</div><div style="color:#aaa;">耐久:${w.durability}%</div>`;
-            } else { html += '<div style="color:#888;margin-top:8px;">未装备武器</div>'; }
-            html += `<div style="color:#888;margin-top:10px;">攻击:${getAttackBonus()} | 防御:${getDefenseBonus()}</div>`;
-            showPopup('👤 角色信息', html, [{text:'关闭', cls:'blue-btn'}]);
-        }
-
         function openShop() {
-            let html = '<div style="color:#ffcc00;margin-bottom:10px;">🏪 常驻商品</div>';
-            html += `<div class="item-row"><span>❤️ 生命药水 (30%HP)</span><span>100金</span><button>购买</button></div>`;
-            html += `<div class="item-row"><span>🩹 绷带 (15%HP)</span><span>50金</span><button>购买</button></div>`;
-            html += `<div class="item-row"><span>🔧 修复油 (+30%耐久)</span><span>200金</span><button>购买</button></div>`;
-            html += `<div class="item-row"><span>📦 扩容 (+5仓库)</span><span>500金</span><button>购买</button></div>`;
-            html += `<div style="color:#ffcc00;margin:15px 0 10px;">🎴 每日翻牌 (${4-gs.dailyFlipsUsed}/4)</div>`;
-            html += `<button class="popup-btn" ${gs.dailyFlipsUsed>=4?'disabled':''}>翻牌 (200金)</button>`;
-            showPopup('🏪 商城', html, [{text:'关闭', cls:'blue-btn'}]);
+            let html = '<div style="color:var(--gold);margin-bottom:12px;font-weight:bold;">🏪 常驻商品</div>';
+            html += `<div class="item-row"><span>❤️ 生命药水 (30%HP)</span><span>100 金</span><button class="buy-btn" data-item="potion">购买</button></div>`;
+            html += `<div class="item-row"><span>🩹 绷带 (15%HP)</span><span>50 金</span><button class="buy-btn" data-item="bandage">购买</button></div>`;
+            html += `<div class="item-row"><span>🔧 修复油</span><span>200 金</span><button class="buy-btn" data-item="repairOil">购买</button></div>`;
+
+            if (gs.pendingPurchases.length > 0) {
+                html += '<div style="color:var(--gold);margin:16px 0 10px;font-weight:bold;">📋 待购装备（翻牌保留）</div>';
+                gs.pendingPurchases.forEach((pw, i) => {
+                    html += `<div class="item-row"><div><span class="q-${pw.quality}">${pw.name}</span> <span style="font-size:11px;color:var(--text-dim);">攻击+${pw.power}</span></div><span>${pw.price} 金</span><button class="pending-buy-btn" data-idx="${i}">购买</button></div>`;
+                });
+            }
+
+            html += `<div style="color:var(--gold);margin:16px 0 10px;font-weight:bold;">🎴 每日翻牌 (${4-gs.dailyFlipsUsed}/4)</div>`;
+            html += `<button class="popup-btn flip-btn" ${gs.dailyFlipsUsed>=4?'disabled':''}>翻牌 (200金)</button>`;
+            const popup = showPopup('🏪 商城', html, [{text:'关 闭', cls:'blue-btn'}]);
             setTimeout(() => {
-                const btns = document.querySelectorAll('.item-row button');
-                const actions = [
-                    () => { if(gs.gold>=100){gs.gold-=100;gs.hp=Math.min(100,gs.hp+30);updateCampUI();alert('购买成功！');}else alert('金币不足！'); },
-                    () => { if(gs.gold>=50){gs.gold-=50;gs.hp=Math.min(100,gs.hp+15);updateCampUI();alert('购买成功！');}else alert('金币不足！'); },
-                    () => {
-                        if(gs.gold<200){alert('金币不足！');return;}
-                        if(!gs.equippedWeapon){alert('未装备武器！');return;}
-                        gs.gold-=200;gs.equippedWeapon.durability=Math.min(100,gs.equippedWeapon.durability+30);
-                        updateCampUI();alert('修复成功！');
-                    },
-                    () => { if(gs.gold>=500){gs.gold-=500;updateCampUI();alert('扩容5格！');}else alert('金币不足！'); }
-                ];
-                btns.forEach((b,i) => { if(actions[i]) b.addEventListener('click', actions[i]); });
-                const flipBtn = document.querySelectorAll('.popup-btn')[1];
-                if (flipBtn && !flipBtn.disabled) {
-                    flipBtn.addEventListener('click', () => {
-                        if(gs.gold<200){alert('金币不足！');return;}
-                        if(gs.dailyFlipsUsed>=4){alert('今日次数用完');return;}
-                        gs.gold-=200;gs.dailyFlipsUsed++;
-                        const roll=Math.random();
-                        let q,p;
-                        if(roll<0.5){q='white';p=30;}
-                        else if(roll<0.8){q='green';p=80;}
-                        else if(roll<0.95){q='blue';p=200;}
-                        else if(roll<0.99){q='purple';p=500;}
-                        else{q='orange';p=1500;}
-                        updateCampUI();
-                        showPopup('🎴 翻牌',`翻出 <span class="q-${q}">${q}</span> 武器购买权！<br>价格:${p}金币`,[
-                            {text:'购买('+p+'金)',callback:()=>{
-                                if(gs.gold<p){alert('金币不足！');return;}
-                                gs.gold-=p;
-                                const pm={white:1,green:2,blue:3,purple:5,orange:7};
-                                gs.weapons.push({name:'翻牌武器',quality:q,power:pm[q],type:Math.random()<0.5?'attack':'defense',durability:100,quote:'商城翻牌'});
-                                updateCampUI();alert('购买成功！');
-                            }},
-                            {text:'放弃',cls:'blue-btn'}
-                        ]);
-                    });
-                }
+                popup.body.querySelectorAll('.buy-btn').forEach(b => { b.addEventListener('click', () => {
+                    const item = b.dataset.item; const prices = { potion: 100, bandage: 50, repairOil: 200 };
+                    if (gs.gold >= prices[item]) { gs.gold -= prices[item]; gs.consumables[item]++; updateCampUI(); alert('购买成功！'); }
+                    else alert('金币不足！');
+                });});
+                popup.body.querySelectorAll('.pending-buy-btn').forEach(b => { b.addEventListener('click', () => {
+                    const idx = parseInt(b.dataset.idx);
+                    const pw = gs.pendingPurchases[idx];
+                    if (!pw) return;
+                    if (gs.gold >= pw.price) {
+                        gs.gold -= pw.price;
+                        gs.weapons.push({name:pw.name, quality:pw.quality, power:pw.power, type:'attack', durability:100, quote:'翻牌获得'});
+                        gs.pendingPurchases.splice(idx, 1);
+                        updateCampUI(); alert('购买成功！'); openShop();
+                    } else { alert('金币不足！需要' + pw.price + '金币'); }
+                });});
+                const fb = popup.body.querySelector('.flip-btn');
+                if (fb && !fb.disabled) { fb.addEventListener('click', () => {
+                    if(gs.gold<200){alert('金币不足！');return;} if(gs.dailyFlipsUsed>=4){alert('今日次数用完');return;}
+                    gs.gold-=200; gs.dailyFlipsUsed++; const roll=Math.random(); let q,p;
+                    if(roll<0.5){q='white';p=30;}else if(roll<0.8){q='green';p=80;}else if(roll<0.95){q='blue';p=200;}else if(roll<0.99){q='purple';p=500;}else{q='orange';p=1500;}
+                    const pm={white:1,green:2,blue:3,purple:5,orange:7};
+                    gs.pendingPurchases.push({name:'翻牌武器', quality:q, power:pm[q], price:p});
+                    updateCampUI();
+                    showPopup('🎴 翻牌',`翻出 <span class="q-${q}">${q}</span> 武器购买权！<br>价格: ${p} 金币<br><span style="color:var(--text-dim);font-size:13px;">已存入待购仓库，随时可买</span>`,[
+                        {text:'确 定', cls:'blue-btn', callback:()=>{ openShop(); }}
+                    ]);
+                });}
             }, 100);
         }
 
         function openForge() {
-            if(!gs.weapons.length){showPopup('🔨 锻造台','<div style="color:#888;">没有武器可以锻造</div>',[{text:'关闭',cls:'blue-btn'}]);return;}
-            const forgeable = gs.weapons.filter(w=>w.quality!=='orange');
-            if(!forgeable.length){showPopup('🔨 锻造台','<div style="color:#888;">所有武器已是橙色</div>',[{text:'关闭',cls:'blue-btn'}]);return;}
-            let html = '<div style="color:#aaa;margin-bottom:10px;">选择武器，答对单词提升品质</div>';
+            const allGear = [...gs.weapons, gs.equipped.weapon, gs.equipped.armor, gs.equipped.trinket].filter(w => w && w.quality !== 'orange');
+            if(!allGear.length){showPopup('🔨 锻造台','<div style="color:var(--text-dim);padding:20px;text-align:center;">没有可锻造的装备</div>',[{text:'关 闭',cls:'blue-btn'}]);return;}
+            let html = '<div style="color:var(--text-dim);margin-bottom:12px;">选择装备，答对单词提升品质</div>';
             const costs = {white:50,green:150,blue:400,purple:1000};
-            forgeable.forEach(w => {
-                html += `<div class="item-row"><span class="q-${w.quality}">${w.name}</span><span>${costs[w.quality]}金</span><button>锻造</button></div>`;
-            });
-            showPopup('🔨 锻造台', html, [{text:'关闭', cls:'blue-btn'}]);
-            setTimeout(() => {
-                const rows = document.querySelectorAll('.item-row');
-                rows.forEach((row, i) => {
-                    const w = forgeable[i];
-                    if (!w) return;
-                    row.querySelector('button').addEventListener('click', () => startForge(gs.weapons.indexOf(w)));
-                });
-            }, 100);
+            allGear.forEach(w => { html += `<div class="item-row"><span class="q-${w.quality}">${w.name}</span><span>${costs[w.quality]} 金</span><button class="forge-item-btn">锻造</button></div>`; });
+            const popup = showPopup('🔨 锻造台', html, [{text:'关 闭', cls:'blue-btn'}]);
+            setTimeout(() => { popup.body.querySelectorAll('.forge-item-btn').forEach((b, i) => { b.addEventListener('click', () => startForge(allGear[i])); }); }, 100);
         }
-
-        function startForge(idx) {
-            const w = gs.weapons[idx];
+        function startForge(w) {
             if (!w || w.quality==='orange') return;
             const cost = {white:50,green:150,blue:400,purple:1000}[w.quality];
             if (gs.gold < cost) { alert('金币不足！'); return; }
-            gs.gold -= cost;
-            const qs = []; for(let i=0;i<3;i++) qs.push(wordsData[Math.floor(Math.random()*wordsData.length)]);
+            gs.gold -= cost; const qs = []; for(let i=0;i<3;i++) qs.push(wordsData[Math.floor(Math.random()*wordsData.length)]);
             let correct=0, current=0;
             function ask() {
                 if(current>=3) {
-                    const rate = correct===3?0.6:(correct===2?0.4:(correct===1?0.2:0));
-                    const success = Math.random()<rate;
+                    const rate = correct===3?0.6:(correct===2?0.4:(correct===1?0.2:0)); const success = Math.random()<rate;
                     const old = document.querySelector('.popup-overlay'); if(old) old.remove();
-                    if(success) {
-                        const qo = {white:'green',green:'blue',blue:'purple',purple:'orange'};
-                        w.quality = qo[w.quality]; w.durability = 100;
-                        updateCampUI();
-                        showPopup('🔨 锻造成功！',`品质提升为 <span class="q-${w.quality}">${w.quality}</span>！`, [{text:'太好了'}] );
-                    } else {
-                        w.durability = Math.max(0, w.durability - 20);
-                        if(w.durability<=0) { const wi=gs.weapons.indexOf(w); if(wi>=0) gs.weapons.splice(wi,1); if(gs.equippedWeapon===w) gs.equippedWeapon=null; }
-                        updateCampUI();
-                        showPopup('💔 锻造失败', '耐久-20%' + (w.durability<=0?'<br>武器损毁。':''), [{text:'好吧'}] );
-                    }
+                    if(success) { const qo = {white:'green',green:'blue',blue:'purple',purple:'orange'}; w.quality = qo[w.quality]; w.durability = 100; updateCampUI(); showPopup('🔨 锻造成功！',`品质提升为 <span class="q-${w.quality}">${w.quality}</span>！`, [{text:'太好了'}]); }
+                    else { w.durability = Math.max(0, w.durability - 20); if(w.durability<=0) { const wi=gs.weapons.indexOf(w); if(wi>=0) gs.weapons.splice(wi,1); if(gs.equipped.weapon===w) gs.equipped.weapon=null; if(gs.equipped.armor===w) gs.equipped.armor=null; if(gs.equipped.trinket===w) gs.equipped.trinket=null; } updateCampUI(); showPopup('💔 锻造失败', '耐久-20%' + (w.durability<=0?'<br>装备损毁。':''), [{text:'好吧'}]); }
                     return;
                 }
-                const qw = qs[current];
-                const opts = [...qw.distractors, qw.meaning];
+                const qw = qs[current]; const opts = [...qw.distractors, qw.meaning];
                 for(let i=opts.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[opts[i],opts[j]]=[opts[j],opts[i]];}
                 const ans = opts.indexOf(qw.meaning);
-                let h = `<div style="color:#fff;font-size:28px;">${qw.word}</div><div style="color:#aaa;">锻造题 ${current+1}/3</div>`;
-                opts.forEach((o,i) => h += `<button class="popup-btn" style="display:block;width:100%;margin:3px 0;">${o}</button>`);
+                let h = `<div style="color:#fff;font-size:26px;margin-bottom:8px;">${qw.word}</div><div style="color:var(--text-dim);margin-bottom:12px;">锻造题 ${current+1}/3</div>`;
+                opts.forEach((o,i) => h += `<button class="popup-btn" style="display:block;width:100%;margin:4px 0;">${o}</button>`);
                 const old = document.querySelector('.popup-overlay'); if(old) old.remove();
                 const ov = document.createElement('div'); ov.className='popup-overlay';
-                const bx = document.createElement('div'); bx.className='popup-box'; bx.innerHTML=h;
+                const bx = document.createElement('div'); bx.className='popup-box';
+                bx.innerHTML = `<div class="popup-header"><div class="popup-header-title">🔨 锻造台</div><button class="popup-header-close">✕</button></div><div class="popup-body">${h}</div>`;
                 ov.appendChild(bx); D.gc.appendChild(ov);
-                bx.querySelectorAll('button').forEach((b,i)=>{b.addEventListener('click',()=>{if(i===ans)correct++;current++;ov.remove();ask();});});
+                bx.querySelector('.popup-header-close').addEventListener('click', () => ov.remove());
+                bx.querySelectorAll('button.popup-btn').forEach((b,i)=>{b.addEventListener('click',()=>{if(i===ans)correct++;current++;ov.remove();ask();});});
             }
             ask();
         }
 
         function enterTower() {
-            D.campScreen.style.display='none'; D.battleScreen.style.display='flex';
-            if (D.extractBtn) D.extractBtn.style.display='none';
-            gs.floor=1;gs.hp=100;gs.monstersRemaining=3;
-            gs.combo=0;gs.battleWeapons=[];gs.wrongWords=[];gs.noDropStreak=0;
-            // 装备从营地继承，不需要重置
-            updateBattleHUD(); nextMonster();
+            D.camp.style.display='none'; D.battle.style.display='flex';
+            D.extractArea.style.display='none';
+            gs.floor=1; gs.hp=100; gs.monstersRemaining=3;
+            gs.combo=0; gs.battleWeapons=[]; gs.wrongWords=[]; gs.noDropStreak=0;
+            updateBattleEquipBar(); updateBattleHUD(); nextMonster();
         }
-
         function returnToCamp() {
-            D.battleScreen.style.display='none'; D.campScreen.style.display='flex';
+            D.battle.style.display='none'; D.camp.style.display='flex';
             if(gs.floor>gs.maxFloor) gs.maxFloor=gs.floor;
-            // 把背包武器和当前装备都带回营地
-            if (gs.equippedWeapon) {
-                gs.weapons.push(gs.equippedWeapon);
-                gs.equippedWeapon = null;
-            }
-            gs.weapons = gs.weapons.concat(gs.battleWeapons);
-            gs.battleWeapons=[]; updateCampUI();
+            ['weapon','armor','trinket'].forEach(s => { if (gs.equipped[s]) { gs.weapons.push(gs.equipped[s]); gs.equipped[s] = null; } });
+            gs.weapons = gs.weapons.concat(gs.battleWeapons); gs.battleWeapons=[]; updateCampUI();
         }
 
-        window.extractNow = function() {
-            showPopup('🚪 撤离', '确定撤离？带走所有战利品。', [
-                {text:'确认撤离', callback:()=>returnToCamp()},
-                {text:'继续', cls:'blue-btn'}
+        function showExtractOptions() {
+            pauseBattle();
+            showPopup('🚪 阶段完成', `第 ${gs.floor} 层已清空！<br><br>选择你的下一步行动。`, [
+                {text:'🚪 安全撤离', cls:'green-btn', callback: () => { returnToCamp(); }},
+                {text:'⚔️ 继续冒险', callback: () => { D.extractArea.style.display = 'none'; resumeBattle(); nextFloor(); }}
             ]);
-        };
-
-        function getMonsterType() {
-            const remaining = gs.monstersRemaining;
-            if (gs.floor % 5 === 0 && remaining === 1) return 'boss';
-            if (gs.floor % 3 === 0 && remaining === 2) return 'elite';
-            return 'normal';
         }
 
+        function equipToSlot(item) {
+            const slot = getEquipSlot(item.type === 'trinket' ? 'trinket' : item.type);
+            const old = gs.equipped[slot]; if (old) gs.battleWeapons.push(old);
+            const idx = gs.battleWeapons.indexOf(item); if (idx >= 0) gs.battleWeapons.splice(idx, 1);
+            gs.equipped[slot] = item;
+            updateBattleEquipBar(); updateBattleHUD();
+        }
+        function unequipSlot(slot) {
+            const item = gs.equipped[slot]; if (!item) return;
+            if (gs.battleWeapons.length >= MAX_BATTLE_BAG) { alert('背包已满！'); return; }
+            gs.battleWeapons.push(item); gs.equipped[slot] = null;
+            updateBattleEquipBar(); updateBattleHUD();
+        }
+        function usePotion(type) {
+            if (type === 'potion' && gs.consumables.potion > 0) { gs.consumables.potion--; gs.hp = Math.min(gs.maxHp, gs.hp + Math.floor(gs.maxHp * 0.3)); alert('使用生命药水，恢复30%HP！'); }
+            else if (type === 'bandage' && gs.consumables.bandage > 0) { gs.consumables.bandage--; gs.hp = Math.min(gs.maxHp, gs.hp + Math.floor(gs.maxHp * 0.15)); alert('使用绷带，恢复15%HP！'); }
+            else if (type === 'repairOil' && gs.consumables.repairOil > 0) { const target = gs.equipped.weapon || gs.equipped.armor || gs.equipped.trinket; if (!target) { alert('没有装备需要修复！'); return; } gs.consumables.repairOil--; target.durability = Math.min(100, target.durability + 30); alert('使用修复油，装备耐久+30%！'); }
+            else { alert('数量不足！'); return; }
+            updateBattleHUD(); updateBattleEquipBar(); saveGame();
+        }
+        function openBattleBackpack() {
+            pauseBattle();
+            let html = '<div style="color:var(--gold);font-weight:bold;">🧪 消耗品</div>';
+            html += `<div class="item-row"><span>❤️ 生命药水 (${gs.consumables.potion}瓶)</span><button class="use-btn" data-item="potion" ${gs.consumables.potion===0?'disabled':''}>使用</button></div>`;
+            html += `<div class="item-row"><span>🩹 绷带 (${gs.consumables.bandage}个)</span><button class="use-btn" data-item="bandage" ${gs.consumables.bandage===0?'disabled':''}>使用</button></div>`;
+            html += `<div class="item-row"><span>🔧 修复油 (${gs.consumables.repairOil}瓶)</span><button class="use-btn" data-item="repairOil" ${gs.consumables.repairOil===0?'disabled':''}>使用</button></div>`;
+            html += '<div style="color:var(--gold);margin-top:14px;font-weight:bold;">⚔️ 当前装备</div>';
+            const slots = { weapon: '⚔️武器', armor: '🛡️护甲', trinket: '💍饰品' };
+            Object.keys(slots).forEach(s => { const item = gs.equipped[s]; html += `<div class="item-row"><span>${slots[s]}: ${item ? '<span class="q-'+item.quality+'">'+item.name+' (+'+item.power+')</span>':'无'}</span><button class="unequip-btn" data-slot="${s}" ${!item?'disabled':''}>卸下</button></div>`; });
+            html += '<div style="color:var(--gold);margin-top:14px;font-weight:bold;">🎒 背包装备</div>';
+            if (gs.battleWeapons.length === 0) html += '<div style="color:var(--text-dim);padding:12px;">背包空空</div>';
+            else { gs.battleWeapons.forEach((w, i) => { const typeLabel = w.type === 'attack' ? '⚔️攻' : w.type === 'defense' ? '🛡️防' : '💍'+w.subtype; html += `<div class="item-row"><div><span class="q-${w.quality}">${w.name}</span> <span style="font-size:11px;color:var(--text-dim);">${typeLabel}+${w.power}</span></div><button class="equip-btn" data-idx="${i}">装备</button> <button class="discard-btn" data-idx="${i}">丢弃</button></div>`; }); }
+            const popup = showPopup('🎒 随身背包', html, [{text:'关 闭', cls:'blue-btn', callback: () => { updateBattleEquipBar(); updateBattleHUD(); saveGame(); resumeBattle(); }}]);
+            setTimeout(() => {
+                popup.body.querySelectorAll('.use-btn').forEach(b => { b.addEventListener('click', () => { usePotion(b.dataset.item); openBattleBackpack(); }); });
+                popup.body.querySelectorAll('.unequip-btn').forEach(b => { b.addEventListener('click', () => { unequipSlot(b.dataset.slot); openBattleBackpack(); }); });
+                popup.body.querySelectorAll('.equip-btn').forEach(b => { b.addEventListener('click', () => { const idx = parseInt(b.dataset.idx); if (idx >= 0 && idx < gs.battleWeapons.length) { equipToSlot(gs.battleWeapons[idx]); openBattleBackpack(); } }); });
+                popup.body.querySelectorAll('.discard-btn').forEach(b => { b.addEventListener('click', () => { const idx = parseInt(b.dataset.idx); if (idx >= 0 && idx < gs.battleWeapons.length) { if (confirm('确定丢弃 ' + gs.battleWeapons[idx].name + '？')) { gs.battleWeapons.splice(idx, 1); openBattleBackpack(); } } }); });
+            }, 100);
+        }
+
+        function getMonsterType() { const r = gs.monstersRemaining; if (gs.floor % 5 === 0 && r === 1) return 'boss'; if (gs.floor % 3 === 0 && r === 2) return 'elite'; return 'normal'; }
         function nextMonster() {
             if (gs.monstersRemaining <= 0) { nextFloor(); return; }
             const w = wordsData[Math.floor(Math.random() * wordsData.length)];
             const opts = [...w.distractors, w.meaning];
-            for (let i = opts.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [opts[i], opts[j]] = [opts[j], opts[i]];
-            }
-            const type = getMonsterType();
-            let hp, namePrefix;
-            if (type === 'boss') { hp = 8; namePrefix = '👑首领·'; }
-            else if (type === 'elite') { hp = 5; namePrefix = '⭐精英·'; }
-            else { hp = 3; namePrefix = ''; }
-            gs.currentMonster = {
-                word: w.word, meaning: w.meaning, options: opts,
-                correctIndex: opts.indexOf(w.meaning),
-                monsterName: namePrefix + w.monster, memoryTip: w.memory_tip,
-                hp: hp, maxHp: hp, weapon: w.weapon, weapon_quote: w.weapon_quote,
-                type: type
-            };
-            if (D.monsterName) D.monsterName.textContent = '怪物: ' + gs.currentMonster.monsterName;
-            if (D.questionWord) D.questionWord.textContent = gs.currentMonster.word;
-            if (D.comboText) D.comboText.textContent = '';
-            if (D.feedbackText) D.feedbackText.textContent = '';
-            if (D.monsterHpBar) D.monsterHpBar.style.width = '100%';
-            if (D.monsterIcon) D.monsterIcon.style.transform = 'translateX(0)';
-            D.optionBtns.forEach((btn, i) => {
-                btn.textContent = gs.currentMonster.options[i];
-                btn.className = 'option-btn';
-            });
-            gs.canAnswer = true; gs.timeLeft = 8;
-            if (D.timerBar) {
-                D.timerBar.style.width = '100%';
-                D.timerBar.style.background = '#00ff00';
-            }
-            clearInterval(gs.timerInterval);
-            gs.timerInterval = setInterval(updateTimer, 1000);
-            if (D.extractBtn) D.extractBtn.style.display = (gs.floor % 5 === 0) ? 'block' : 'none';
+            for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+            const type = getMonsterType(); let hp, namePrefix;
+            if (type === 'boss') { hp = 8; namePrefix = '👑 首领 · '; } else if (type === 'elite') { hp = 5; namePrefix = '⭐ 精英 · '; } else { hp = 3; namePrefix = ''; }
+            gs.currentMonster = { word: w.word, meaning: w.meaning, options: opts, correctIndex: opts.indexOf(w.meaning), monsterName: namePrefix + w.monster, memoryTip: w.memory_tip, hp: hp, maxHp: hp, weapon: w.weapon, weapon_quote: w.weapon_quote, type: type };
+            D.monsterName.textContent = gs.currentMonster.monsterName; D.questionWord.textContent = gs.currentMonster.word;
+            D.comboText.textContent = ''; D.feedbackText.textContent = ''; if(D.monsterHpBar) D.monsterHpBar.style.width = '100%';
+            D.optionBtns.forEach((btn, i) => { btn.textContent = gs.currentMonster.options[i]; btn.className = 'option-btn'; });
+            gs.canAnswer = true; gs.timeLeft = getTrinketEffect().type === 'swift' ? 8 + getTrinketEffect().power : 8;
+            D.timerBar.style.width = '100%'; D.timerBar.style.background = 'var(--green)';
+            clearInterval(gs.timerInterval); gs.timerInterval = setInterval(updateTimer, 1000);
         }
-
         function updateTimer() {
-            if (!gs.canAnswer) return;
-            gs.timeLeft--;
-            if (D.timerBar) {
-                D.timerBar.style.width = (gs.timeLeft / 8 * 100) + '%';
-                if (gs.timeLeft <= 2) D.timerBar.style.background = '#ff0000';
-                else if (gs.timeLeft <= 4) D.timerBar.style.background = '#ffff00';
-            }
+            if (!gs.canAnswer) return; gs.timeLeft--;
+            const maxTime = getTrinketEffect().type === 'swift' ? 8 + getTrinketEffect().power : 8;
+            D.timerBar.style.width = (gs.timeLeft / maxTime * 100) + '%';
+            if (gs.timeLeft <= 2) D.timerBar.style.background = 'var(--red)';
+            else if (gs.timeLeft <= 4) D.timerBar.style.background = 'var(--gold)';
+            else D.timerBar.style.background = 'var(--green)';
             if (gs.timeLeft <= 0) selectAnswer(-1);
         }
-
         function selectAnswer(index) {
-            if (!gs.canAnswer) return;
-            gs.canAnswer = false;
-            clearInterval(gs.timerInterval);
-            const m = gs.currentMonster;
-            if (!m) { nextMonster(); return; }
+            if (!gs.canAnswer) return; gs.canAnswer = false; clearInterval(gs.timerInterval);
+            const m = gs.currentMonster; if (!m) { nextMonster(); return; }
             if (index === m.correctIndex) {
-                gs.combo++;
-                const atk = getAttackBonus();
-                m.hp -= (1 + atk);
-                if (D.optionBtns[index]) D.optionBtns[index].classList.add('correct');
-                if (D.fb) { D.fb.style.color = '#00ff00'; D.fb.textContent = '✓ 正确!'; }
-                if (D.ct) D.ct.textContent = gs.combo + ' 连击!';
-                if (D.monsterHpBar) D.monsterHpBar.style.width = Math.max(0, m.hp / m.maxHp * 100) + '%';
+                gs.combo++; const atk = getAttackBonus(); const trinket = getTrinketEffect();
+                const critRate = 0.15 + (trinket.type === 'crit' ? trinket.power * 0.05 : 0); const isCrit = Math.random() < critRate;
+                const baseDmg = atk; const finalDmg = isCrit ? baseDmg * 2 : baseDmg;
+                m.hp -= Math.max(1, finalDmg);
+                D.optionBtns[index].classList.add('correct'); D.feedbackText.style.color = 'var(--green)'; D.feedbackText.textContent = '✓ 正确!' + (isCrit ? ' 暴击!' : '');
+                D.comboText.textContent = gs.combo + ' 连击!'; if(D.monsterHpBar) D.monsterHpBar.style.width = Math.max(0, m.hp / m.maxHp * 100) + '%';
                 if (m.hp <= 0) {
-                    let gold;
-                    if (m.type === 'boss') gold = Math.floor(Math.random() * 100) + 100;
-                    else if (m.type === 'elite') gold = Math.floor(Math.random() * 40) + 40;
-                    else gold = Math.floor(Math.random() * 15) + 10;
-                    gs.gold += gold;
-                    gs.monstersRemaining--;
-                    tryDropWeapon();
-                    updateBattleHUD();
-                    if (D.fb) D.fb.textContent = '怪物击败! 获得 ' + gold + ' 金币';
+                    let gold; if (m.type === 'boss') gold = Math.floor(Math.random() * 100) + 100; else if (m.type === 'elite') gold = Math.floor(Math.random() * 40) + 40; else gold = Math.floor(Math.random() * 15) + 10;
+                    if (trinket.type === 'greed') gold = Math.floor(gold * (1 + trinket.power * 0.3));
+                    gs.gold += gold; gs.monstersRemaining--; if (trinket.type === 'vampire') gs.hp = Math.min(gs.maxHp, gs.hp + trinket.power * 3);
+                    tryDropWeapon(); updateBattleHUD(); D.feedbackText.textContent = '怪物击败! 获得 ' + gold + ' 金币';
+                    if (gs.monstersRemaining === 0) { if (gs.floor % 5 === 0) { showExtractOptions(); } else { setTimeout(nextFloor, 1500); } }
                     return;
                 }
             } else {
-                gs.combo = 0;
-                const def = getDefenseBonus();
-                const dmg = Math.max(5, 15 - def);
-                gs.hp -= dmg;
-                if (index >= 0 && D.optionBtns[index]) D.optionBtns[index].classList.add('wrong');
-                if (D.optionBtns[m.correctIndex]) D.optionBtns[m.correctIndex].classList.add('correct');
-                if (D.ct) D.ct.textContent = '';
-                gs.wrongWords.push({ word: m.word, meaning: m.meaning, tip: m.memoryTip });
-                updateBattleHUD();
-                if (gs.hp <= 0) { gameOverBattle(); return; }
-                showPopup('✗ 答错了', `<b>${m.word}</b><br>${m.meaning}<br><br>💡 ${m.memoryTip}`, [{text:'继续', callback:()=>{setTimeout(newQuestion,500);}}]);
+                gs.combo = 0; const def = getDefenseBonus(); const dmg = Math.max(3, 15 - def); gs.hp -= dmg;
+                if (index >= 0) D.optionBtns[index].classList.add('wrong'); D.optionBtns[m.correctIndex].classList.add('correct');
+                D.comboText.textContent = ''; gs.wrongWords.push({ word: m.word, meaning: m.meaning, tip: m.memoryTip });
+                updateBattleHUD(); if (gs.hp <= 0) { gameOverBattle(); return; }
+                pauseBattle();
+                showPopup('✗ 答错了', `<b style="color:#fff;">${m.word}</b><br><span style="color:var(--gold);">${m.meaning}</span><br><br><span style="color:var(--text-dim);">💡 ${m.memoryTip}</span>`, [{text:'继 续', callback:()=>{ resumeBattle(); setTimeout(newQuestion,500); }}]);
                 return;
             }
-            updateBattleHUD();
-            setTimeout(newQuestion, 1000);
+            updateBattleHUD(); setTimeout(newQuestion, 1000);
         }
-
+        function generateWeapon(name, quote, qOverride) {
+            const qualities = ['white','green','blue','purple','orange']; const weights = [0.65, 0.25, 0.08, 0.018, 0.002];
+            let q = qOverride; if (!q) { const r = Math.random(); let c=0; for(let i=0;i<qualities.length;i++){c+=weights[i];if(r<c){q=qualities[i];break;}} if(!q) q='white'; }
+            const pm={white:1,green:2,blue:3,purple:5,orange:7}; const types=['attack','defense','trinket']; const tw=[0.4,0.3,0.3];
+            const r=Math.random(); let c=0, t='attack'; for(let i=0;i<types.length;i++){c+=tw[i];if(r<c){t=types[i];break;}}
+            const nw={name:name||'神秘装备',quality:q,power:pm[q],type:t,durability:100,quote:quote||''};
+            if(t==='trinket'){const ss=['swift','crit','greed','luck','vampire','craft']; nw.subtype=ss[Math.floor(Math.random()*ss.length)];} return nw;
+        }
         function tryDropWeapon() {
-            const m = gs.currentMonster;
-            if (!m) { nextMonster(); return; }
-            let maxQuality = 'white';
-            if (gs.floor >= 21) maxQuality = 'orange';
-            else if (gs.floor >= 11) maxQuality = 'purple';
-            else if (gs.floor >= 6) maxQuality = 'blue';
-            else maxQuality = 'green';
-
-            let baseRate = 0.4;
-            if (m.type === 'boss') { baseRate = 1.0; if (maxQuality==='green') maxQuality='blue'; else if (maxQuality==='blue') maxQuality='purple'; else if (maxQuality==='purple') maxQuality='orange'; }
-            else if (m.type === 'elite') { baseRate = 0.7; const qo={white:0,green:1,blue:2,purple:3,orange:4}; const cur = qo[maxQuality]||0; maxQuality = Object.keys(qo).find(k=>qo[k]===Math.min(cur+1,4))||maxQuality; }
-            if (gs.hp < 20) baseRate = 0.8;
-            if (gs.noDropStreak >= 3) baseRate = 0.8;
-
-            if (Math.random() < baseRate) {
-                const qualities = ['white','green','blue','purple','orange'];
-                const weights = [0.65, 0.25, 0.08, 0.018, 0.002];
-                const r = Math.random(); let cum=0, q='white';
-                for (let i=0;i<qualities.length;i++){cum+=weights[i];if(r<cum){q=qualities[i];break;}}
-                const qo={white:0,green:1,blue:2,purple:3,orange:4};
-                if (qo[q] > qo[maxQuality]) q = maxQuality;
-                const pm={white:1,green:2,blue:3,purple:5,orange:7};
-                const nw = {name:m.weapon||'神秘武器',quality:q,power:pm[q],type:Math.random()<0.5?'attack':'defense',durability:100,quote:m.weapon_quote||''};
-                gs.battleWeapons.push(nw); gs.noDropStreak=0;
-                // 武器掉落弹窗：装备 或 收下
-                showPopup('🎁 获得武器',
-                    `<span class="q-${q}"><b>${nw.name}</b></span><br>品质：${q} | ${nw.type==='attack'?'攻击':'防御'}+${nw.power}<br><i>"${nw.quote}"</i>`,
-                    [
-                        {text:'⚡ 装备', cls:'green-btn', callback:()=>{
-                            equipWeaponLocal(nw);
-                            setTimeout(nextMonster, 500);
-                        }},
-                        {text:'📦 收下', callback:()=>{
-                            setTimeout(nextMonster, 500);
-                        }}
-                    ]
-                );
-            } else { gs.noDropStreak++; setTimeout(nextMonster,500); }
+            const m = gs.currentMonster; if (!m) { return; }
+            let maxQ = 'white'; if (gs.floor >= 21) maxQ = 'orange'; else if (gs.floor >= 11) maxQ = 'purple'; else if (gs.floor >= 6) maxQ = 'blue'; else maxQ = 'green';
+            let rate = 0.4; if (m.type === 'boss') { rate = 1.0; if(maxQ==='green') maxQ='blue'; else if(maxQ==='blue') maxQ='purple'; else if(maxQ==='purple') maxQ='orange'; }
+            else if (m.type === 'elite') { rate = 0.7; const qo={white:0,green:1,blue:2,purple:3,orange:4}; const cur=qo[maxQ]||0; maxQ=Object.keys(qo).find(k=>qo[k]===Math.min(cur+1,4))||maxQ; }
+            if (gs.hp < 20) rate = 0.8; if (gs.noDropStreak >= 3) rate = 0.8; const trinket = getTrinketEffect(); if (trinket.type === 'luck') rate += trinket.power * 0.15;
+            if (Math.random() < rate) {
+                const nw = generateWeapon(m.weapon, m.weapon_quote); const qo={white:0,green:1,blue:2,purple:3,orange:4}; if (qo[nw.quality] > qo[maxQ]) nw.quality = maxQ;
+                if (gs.battleWeapons.length >= MAX_BATTLE_BAG) { pauseBattle(); showPopup('⚠️ 背包已满', `背包已满(${MAX_BATTLE_BAG}格)！<br>${nw.name} 无法拾取。`, [{text:'确 定', callback:()=>{ resumeBattle(); }}]); gs.noDropStreak++; return; }
+                gs.battleWeapons.push(nw); gs.noDropStreak=0; const tl = nw.type==='attack'?'⚔️攻击':nw.type==='defense'?'🛡️防御':'💍'+nw.subtype;
+                pauseBattle();
+                showPopup('🎁 获得装备', `<span class="q-${nw.quality}"><b>${nw.name}</b></span><br>品质：${nw.quality} | ${tl}+${nw.power}<br><i style="color:var(--text-dim);">"${nw.quote}"</i>`, [
+                    {text:'⚡ 装备', cls:'green-btn', callback:()=>{ equipToSlot(nw); resumeBattle(); }},
+                    {text:'📦 收下', callback:()=>{ resumeBattle(); }}
+                ]);
+            } else { gs.noDropStreak++; }
         }
-
         function newQuestion() {
-            if (!gs.currentMonster || gs.currentMonster.hp <= 0) { nextMonster(); return; }
-            const w = wordsData[Math.floor(Math.random() * wordsData.length)];
-            const opts = [...w.distractors, w.meaning];
+            if (!gs.currentMonster || gs.currentMonster.hp <= 0) { return; }
+            const w = wordsData[Math.floor(Math.random() * wordsData.length)]; const opts = [...w.distractors, w.meaning];
             for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
-            gs.currentMonster.word = w.word;
-            gs.currentMonster.meaning = w.meaning;
-            gs.currentMonster.options = opts;
-            gs.currentMonster.correctIndex = opts.indexOf(w.meaning);
-            gs.currentMonster.memoryTip = w.memory_tip;
-            if (D.questionWord) D.questionWord.textContent = gs.currentMonster.word;
-            D.optionBtns.forEach((btn, i) => { btn.textContent = gs.currentMonster.options[i]; btn.className = 'option-btn'; });
-            gs.canAnswer = true; gs.timeLeft = 8;
-            if (D.timerBar) { D.timerBar.style.width = '100%'; D.timerBar.style.background = '#00ff00'; }
-            clearInterval(gs.timerInterval);
-            gs.timerInterval = setInterval(updateTimer, 1000);
+            gs.currentMonster.word = w.word; gs.currentMonster.meaning = w.meaning; gs.currentMonster.options = opts; gs.currentMonster.correctIndex = opts.indexOf(w.meaning); gs.currentMonster.memoryTip = w.memory_tip;
+            D.questionWord.textContent = gs.currentMonster.word; D.optionBtns.forEach((btn, i) => { btn.textContent = gs.currentMonster.options[i]; btn.className = 'option-btn'; });
+            gs.canAnswer = true; gs.timeLeft = getTrinketEffect().type === 'swift' ? 8 + getTrinketEffect().power : 8;
+            D.timerBar.style.width = '100%'; D.timerBar.style.background = 'var(--green)';
+            clearInterval(gs.timerInterval); gs.timerInterval = setInterval(updateTimer, 1000);
         }
-
-        function updateBattleHUD() {
-            if (D.floorText) D.floorText.textContent = '层数: ' + gs.floor;
-            if (D.hpText) D.hpText.textContent = gs.hp + '/' + gs.maxHp;
-            if (D.hpBar) D.hpBar.style.width = (gs.hp / gs.maxHp * 100) + '%';
-            if (D.goldText) D.goldText.textContent = gs.gold;
-        }
-
-        function nextFloor() {
-            gs.floor++; gs.monstersRemaining = 3;
-            if (D.fb) { D.fb.textContent = '进入第 ' + gs.floor + ' 层!'; D.fb.style.color = '#ffcc00'; }
-            updateBattleHUD();
-            setTimeout(nextMonster, 1500);
-        }
-
+        function updateBattleHUD() { D.floorText.textContent = gs.floor; D.hpText.textContent = gs.hp + '/' + gs.maxHp; D.hpBar.style.width = (gs.hp / gs.maxHp * 100) + '%'; D.goldText.textContent = gs.gold; }
+        function nextFloor() { D.extractArea.style.display = 'none'; gs.floor++; gs.monstersRemaining = 3; D.feedbackText.textContent = '进入第 ' + gs.floor + ' 层!'; D.feedbackText.style.color = 'var(--gold)'; updateBattleHUD(); setTimeout(nextMonster, 1500); }
         function gameOverBattle() {
-            clearInterval(gs.timerInterval);
-            const lost = gs.battleWeapons.slice(); gs.battleWeapons = [];
-            if (gs.equippedWeapon) {
-                lost.push(gs.equippedWeapon);
-                gs.equippedWeapon = null;
-            }
-            if (gs.floor > gs.maxFloor) gs.maxFloor = gs.floor;
-            updateCampUI();
-            let content = `你倒在了第 <b>${gs.floor}</b> 层...`;
-            if (lost.length) content += `<br><br>丢失武器:<br>${lost.map(w=>w.name).join(', ')}`;
-            showPopup('💀 你倒下了', content, [{text:'返回营地', callback:()=>returnToCamp()}]);
+            clearInterval(gs.timerInterval); const lost = gs.battleWeapons.slice(); gs.battleWeapons = [];
+            ['weapon','armor','trinket'].forEach(s => { if(gs.equipped[s]){lost.push(gs.equipped[s]);gs.equipped[s]=null;} });
+            if(gs.floor > gs.maxFloor) gs.maxFloor = gs.floor; updateCampUI();
+            // 使用覆盖层而不是弹窗
+            const cover = document.createElement('div'); cover.className = 'game-over-cover';
+            let detailHTML = `你倒在了第 <b style="color:var(--gold);">${gs.floor}</b> 层...`;
+            if(lost.length) detailHTML += `<br><br><span style="color:var(--text-dim);">丢失装备:</span><br>${lost.map(w=>w.name).join(', ')}`;
+            cover.innerHTML = `
+                <div class="go-title">💀 你倒下了</div>
+                <div class="go-detail">${detailHTML}</div>
+                <button class="go-btn" id="goReturnBtn">返回营地</button>
+            `;
+            D.battle.appendChild(cover);
+            document.getElementById('goReturnBtn').addEventListener('click', () => { cover.remove(); returnToCamp(); });
         }
 
-        updateCampUI();
+        document.getElementById('loginBtn').addEventListener('click', login);
+        document.getElementById('registerBtn').addEventListener('click', register);
+        document.getElementById('logoutLink').addEventListener('click', logout);
+        document.getElementById('enterTowerBtn').addEventListener('click', enterTower);
+        document.getElementById('warehouseBtn').addEventListener('click', openWarehouse);
+        document.getElementById('forgeBtn').addEventListener('click', openForge);
+        document.getElementById('shopBtn').addEventListener('click', openShop);
+        document.getElementById('characterArea').addEventListener('click', () => {
+            const eq = gs.equipped;
+            let html = '<div style="font-size:56px;margin-bottom:8px;">⚔️</div><div style="color:#fff;font-size:18px;">'+gs.nickname+'</div>';
+            html += '<div style="margin-top:16px;line-height:2.2;">';
+            html += `<span style="color:var(--text-dim);">⚔️ 武器：</span><span style="color:var(--gold);">${eq.weapon?eq.weapon.name+' (+'+eq.weapon.power+')':'无'}</span><br>`;
+            html += `<span style="color:var(--text-dim);">🛡️ 护甲：</span><span style="color:var(--gold);">${eq.armor?eq.armor.name+' (+'+eq.armor.power+')':'无'}</span><br>`;
+            html += `<span style="color:var(--text-dim);">💍 饰品：</span><span style="color:var(--gold);">${eq.trinket?eq.trinket.name+' ['+eq.trinket.subtype+']':'无'}</span><br>`;
+            html += '</div>';
+            html += '<div style="margin-top:14px;color:var(--text-dim);font-size:14px;">';
+            html += `⚔️ 攻击力：<span style="color:#fff;">${getAttackBonus()}</span> &nbsp;|&nbsp; 🛡️ 防御力：<span style="color:#fff;">${getDefenseBonus()}</span><br>`;
+            html += `❤️ 药水 ${gs.consumables.potion} &nbsp; 🩹 绷带 ${gs.consumables.bandage} &nbsp; 🔧 修复油 ${gs.consumables.repairOil}`;
+            html += '</div>';
+            showPopup('👤 角色信息', html, [{text:'关 闭', cls:'blue-btn'}]);
+        });
+        D.extractBtn.addEventListener('click', () => {
+            pauseBattle();
+            showPopup('🚪 撤离', '确定撤离？带走所有战利品。', [
+                {text:'确认撤离', callback: () => { returnToCamp(); }},
+                {text:'继 续', cls:'blue-btn', callback: () => { resumeBattle(); }}
+            ]);
+        });
+        D.organizeBtn.addEventListener('click', openBattleBackpack);
+        D.battleBackpackBtn.addEventListener('click', openBattleBackpack);
+        D.optionBtns.forEach((b, i) => b.addEventListener('click', () => selectAnswer(i)));
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                D.splash.style.opacity = '0';
+                setTimeout(() => {
+                    D.splash.style.display = 'none';
+                    D.auth.style.display = 'flex';
+                }, 600);
+            }, 2200);
+        });
+    })();
     </script>
 </body>
 </html>
